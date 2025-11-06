@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import FunctionTransformer
-from sklearn.preprocessing import OneHotEncoder
 import itertools
 from sklearn.metrics import matthews_corrcoef
 from scipy.stats import chi2_contingency
@@ -222,7 +221,7 @@ len(redundant_cols) #0
 
 
 ## Functional redundancy or strong collinearity
-### Remove extraneous fields (28 to start)
+### Remove extraneous fields for assessing collinearity (28 to start)
 cols_to_drop = ['train_id', 'name', 'category_name', 'brand_name', 'price', 'item_description',
                 'department', 'category', 'class', 'desc_wc', 'name_len', 'price_log']
               
@@ -397,6 +396,7 @@ len(df_ord_num_corr[df_ord_num_corr['item_condition_id']>0.9])
 # Feature Selection=================================================================================
 ## Remove extraneous features (retain in preferred order)
 cols_mod_full = ['train_id', #id
+                 'name', 'item_description', #string (for tf-idf)
                  'item_condition_id', #ordinal
                  'shipping', 'has_cat_name', 'has_brand', 'has_desc', 'has_keyword_new', #Bi/Bool
                  'name_wc', 'desc_len', #num
@@ -413,5 +413,5 @@ df_mod_full[cols_bool] = df_mod_full[cols_bool].astype(int)
 
 
 # Save DF===========================================================================================
-pd.to_pickle(df_mod_full, "train_clean_feat.pkl")
+# pd.to_pickle(df_mod_full, "train_clean_feat.pkl")
 
