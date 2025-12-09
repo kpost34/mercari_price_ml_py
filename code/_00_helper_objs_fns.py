@@ -5,8 +5,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, FunctionTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import TruncatedSVD
 
 
 fixed_colors = {
@@ -169,12 +173,142 @@ def make_barplot(ax, df, var, y, xlabs, order_bar=None, xtitle=None, ytitle=None
     ax.set_ylim(1, ylim)
   else:
     ax.set_ylim(0, ylim)
-    
 
 
-# Encoding/feature-engineering Pipeline Functions===================================================
-## Function to create a tree-/xgb-based pipeline
-def make_tree_xgb_pipeline(model):
+
+# Transformer & Encoder=============================================================================
+## Top-5 Binning Transformer
+class TopKCategories(BaseEstimator, TransformerMixin):
+  
+  #initialize object and set hyperparameters
+  def __init__(self, top_k=5, exclude_labels=('Unknown', 'Other')):
+      self.top_k = top_k ## of top categories to retain by frequency
+      self.exclude_labels = exclude_labels  #values to ignore when counting frequency
+      self.top_categories_ = {} #later holds learned top-K categories per col
+      
+  #transformer learns which categories are most frequent
+  def fit(self, X, y=None):
+      X = pd.DataFrame(X) #ensures X is always a DF
+      exclude = set(self.exclude_labels)  #convert tuple into a set to speed up membership checks
+      self.top_categories_ = {}
+      for col in X.columns:
+          counts = X[col].value_counts() #get freq of each category
+          valid = counts[~counts.index.isin(exclude)] #drop excluded labels
+          top = valid.nlargest(self.top_k).index.tolist() #select most frequent top_k categories
+          self.top_categories_[col] = top #stores top_k categories
+      return self #returns self so it's compatible with Pipeline
+  #object 'knows' which categories are 'top K' for each column
+  
+  #apply learned top-K mapping to new data
+  def transform(self, X):
+      X = pd.DataFrame(X).copy() #convert input to DF and copy it (to avoid changing original data)
+      for col in X.columns:
+          X[col] = np.where( 
+              #if category is a top-K category, keep it as is, otherwise replace with 'Remaining'
+              X[col].isin(self.top_categories_[col]), X[col], 'Remaining'
+          )
+      return X
+
+
+## Target Mean Encoder (per fold)
+class TargetMeanEncoder(BaseEstimator, TransformerMixin):
+    def fit(self, X, y):
+        #ensures that the inputs are pandas objects
+        X = pd.DataFrame(X)
+        y = pd.Series(y)
+        #for each categorical column in X...
+        self.encodings_ = {
+            #group y by each category in col, compute mean y, convert to dict
+            col: y.groupby(X[col]).mean().to_dict() for col in X.columns
+        }
+        self.global_mean_ = y.mean()
+        return self
+
+    #convert each category to its target mean value
+    def transform(self, X):
+        X = pd.DataFrame(X).copy() #make a copy to avoid changing original data
+        for col in X.columns:
+            #replace each cat with encoded value 
+            X[col] = X[col].map(self.encodings_[col])
+        return X
+
+
+
+# Encoding/feature-engineering Pipeline Preprocessors & Functions===================================
+## Pass-through columns
+cols_other = ['item_condition_id', 'shipping', 'has_cat_name', 'has_brand', 'has_desc', 
+              'has_keyword_new']
+
+## Preprocessors
+### Numeric processing
+#numeric columns
+numeric_minmax = ['name_wc']
+numeric_log = ['desc_len']
+
+#categorical columns
+cat_cols = ['brand_name', 'department', 'category', 'class']
+
+numeric_preproc = ColumnTransformer([ 
+    ('minmax', MinMaxScaler(), numeric_minmax), #apply MM scaler to numeric_minmax cols
+    ('log', FunctionTransformer(np.log1p), numeric_log) #apply np.log1p to all numeric_log cols
+])
+
+
+### Text processing
+text_cols = ['name', 'item_description']
+
+#LM
+text_preproc_lm = ColumnTransformer([
+  ('name_tfidf', TfidfVectorizer(max_features=5000, stop_words='english'), 'name'),
+  ('desc_tfidf', TfidfVectorizer(max_features=10000, stop_words='english'), 'item_description')
+])
+
+
+#RF
+text_preproc_rf = ColumnTransformer([
+    ('name_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=1000, stop_words='english')), 
+                             ('svd', TruncatedSVD(n_components=20))]), 'name'),
+    ('desc_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=2000, stop_words='english')), 
+                             ('svd', TruncatedSVD(n_components=40))]), 'item_description')
+])
+
+
+#XGB
+text_preproc_xgb = ColumnTransformer([
+    ('name_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=2000, stop_words='english')), 
+                             ('svd', TruncatedSVD(n_components=50))]), 'name'),
+    ('desc_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=4000, stop_words='english')), 
+                             ('svd', TruncatedSVD(n_components=100))]), 'item_description')
+])
+
+
+
+## Function to create a liner model pipeline
+def make_linear_pipeline(model):
+  #converts cat cols into numeric versions (top 5 + Remaining) & computes target mean
+  cat_target_mean_pipe = Pipeline([
+      ('top5', TopKCategories(top_k=5)),
+      ('target_mean', TargetMeanEncoder())
+  ])
+  
+  #combines numeric and categorical preprocessing
+  preprocessor = ColumnTransformer([
+      ('num', numeric_preproc, numeric_minmax + numeric_log),
+      ('cat', cat_target_mean_pipe, cat_cols),
+      ('text', text_preproc_lm, text_cols),
+      ('pass', 'passthrough', cols_other)
+  ])
+  
+  #assembles the full pipeline
+  return Pipeline([
+      ('preprocessor', preprocessor),
+      ('model', model)
+  ])
+#NOTE: top K categories drop and only target mean ones retained because of collinearity discussed above
+
+
+## Function to create a tree-based pipeline
+def make_tree_pipeline(model):
   #keeps 5 most common categories + 'Remaining' --> one hot encoding
   cat_top5_pipe = Pipeline([
       ('top5', TopKCategories(top_k=5)),
@@ -203,6 +337,7 @@ def make_tree_xgb_pipeline(model):
   preprocessor = ColumnTransformer([
       ('num', numeric_preproc, numeric_minmax + numeric_log),
       ('cat', cat_preproc, cat_cols + ['item_condition_id']),
+      ('text', text_preproc_rf, text_cols),
       ('pass', 'passthrough', cols_other)
   ])
   
@@ -213,31 +348,44 @@ def make_tree_xgb_pipeline(model):
   ])
 
 
-## Function to create a liner model pipeline
-def make_linear_pipeline(model):
-  #converts cat cols into numeric versions (top 5 + Remaining) & computes target mean
+## Function to create an xgb-based pipeline
+def make_xgb_pipeline(model):
+  #keeps 5 most common categories + 'Remaining' --> one hot encoding
+  cat_top5_pipe = Pipeline([
+      ('top5', TopKCategories(top_k=5)),
+      ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+  ])
+  
+  #keeps 5 most common categories + 'Remaining' --> target encoding
   cat_target_mean_pipe = Pipeline([
       ('top5', TopKCategories(top_k=5)),
       ('target_mean', TargetMeanEncoder())
   ])
   
-  #combines numeric and categorical preprocessing
+  #TargetMean only for item_condition_id
+  item_cond_pipe = Pipeline([
+    ('target_mean', TargetMeanEncoder())
+  ])
+  
+  #concatenate outputs from one-hot encoding and target mean encoding branches
+  cat_preproc = ColumnTransformer([
+      ('top5_onehot', cat_top5_pipe, cat_cols),
+      ('top5_lprice', cat_target_mean_pipe, cat_cols),
+      ('item_cond_lprice', item_cond_pipe, ['item_condition_id'])
+  ])
+  
+  #combines numerical and categorical pre-processing
   preprocessor = ColumnTransformer([
       ('num', numeric_preproc, numeric_minmax + numeric_log),
-      ('cat', cat_target_mean_pipe, cat_cols),
+      ('cat', cat_preproc, cat_cols + ['item_condition_id']),
+      ('text', text_preproc_xgb, text_cols),
       ('pass', 'passthrough', cols_other)
   ])
   
-  #assembles the full pipeline
+  #wraps preprocessor and model into one end-to-end pipeline
   return Pipeline([
       ('preprocessor', preprocessor),
       ('model', model)
   ])
-#NOTE: top K categories drop and only target mean ones retained because of collinearity discussed above
-  
-  
-  
-
-
 
 
