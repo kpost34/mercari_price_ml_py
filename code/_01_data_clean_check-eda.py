@@ -126,6 +126,10 @@ df1['desc_wc'] = df1['item_description'].apply(lambda x: len(x.split(' ')))
 df1['name_len'] = df1['name'].str.len()
 df1['desc_len'] = df1['item_description'].str.len()
 
+#get min and max of each
+cols_num_text = ['name_wc', 'desc_wc', 'name_len', 'desc_len']
+df1[cols_num_text].apply(lambda x: str(x.min()) + '-' + str(x.max()))
+
 
 ## Add top 5 known categories + remainder (because of numbers of categories)
 roots = ['dpt', 'cat', 'class', 'brand']
@@ -158,8 +162,6 @@ df.value_counts('class') #pants, tights, and leggings most with 60,177
 
 
 ### Explore derived word count and length columns
-cols_num_text = ['name_wc', 'desc_wc', 'name_len', 'desc_len']
-
 df[cols_num_text].agg(['min', 'max'])
 #name_wc: 1-17
 #desc_wc: 1-245
