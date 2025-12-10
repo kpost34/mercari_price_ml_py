@@ -108,10 +108,7 @@ plt.close()
 
 
 ## Matching keywords in item_description
-keywords = ['new', 'brand new', 'used', 'worn', 'never used', 'authentic']
-pattern = '|'.join(keywords)
-
-df['has_keyword_new'] = df['item_description'].str.contains(pattern, case=False, na=False)
+df['has_keyword_new'] = df['item_description'].str.contains('new', case=False, na=False)
 labs_new = ['No', 'Yes']
 
 

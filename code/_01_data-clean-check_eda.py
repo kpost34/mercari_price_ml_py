@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 
 ## Change wd
 from pathlib import Path
@@ -26,7 +25,8 @@ from _00_helper_objs_fns import (
   add_top_cat, 
   make_countplot, 
   make_histplot, 
-  make_barplot
+  make_barplot,
+  make_scatter
 )
 
 ## Data
@@ -349,17 +349,6 @@ plt.close()
 
 
 #### Word counts and lengths of name and item_desc with price
-#create function
-def make_scatter(df, var, y, ax, ylim=None, xtitle=None, ytitle=None, lableft=True):
-  sns.scatterplot(df, x=var, y=y, color=fixed_colors[var], 
-                  alpha=0.05, ax=ax)
-  ax.set_xlabel(xtitle, fontsize=8)
-  ax.set_ylabel(ytitle, fontsize=8)
-  ax.tick_params(axis='x', labelsize=8)
-  ax.tick_params(axis='y', labelleft=lableft, labelsize=8)
-  ax.set_ylim(0, ylim)
-  
-
 ##### Raw price
 fig, axes = plt.subplots(2, 2)
 

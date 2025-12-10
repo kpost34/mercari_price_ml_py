@@ -175,6 +175,17 @@ def make_barplot(ax, df, var, y, xlabs, order_bar=None, xtitle=None, ytitle=None
     ax.set_ylim(0, ylim)
 
 
+## Function to make scatter plot
+def make_scatter(df, var, y, ax, ylim=None, xtitle=None, ytitle=None, lableft=True):
+  sns.scatterplot(df, x=var, y=y, color=fixed_colors[var], 
+                  alpha=0.05, ax=ax)
+  ax.set_xlabel(xtitle, fontsize=8)
+  ax.set_ylabel(ytitle, fontsize=8)
+  ax.tick_params(axis='x', labelsize=8)
+  ax.tick_params(axis='y', labelleft=lableft, labelsize=8)
+  ax.set_ylim(0, ylim)
+
+
 
 # Transformer & Encoder=============================================================================
 ## Top-5 Binning Transformer
@@ -284,7 +295,7 @@ text_preproc_xgb = ColumnTransformer([
 
 
 ## Function to create a liner model pipeline
-def make_linear_pipeline(model):
+def make_ridge_pipeline(model):
   #converts cat cols into numeric versions (top 5 + Remaining) & computes target mean
   cat_target_mean_pipe = Pipeline([
       ('top5', TopKCategories(top_k=5)),
