@@ -268,8 +268,8 @@ numeric_preproc = ColumnTransformer([
 ### Text processing
 text_cols = ['name', 'item_description']
 
-#LM
-text_preproc_lm = ColumnTransformer([
+#Ridge
+text_preproc_ridge = ColumnTransformer([
   ('name_tfidf', TfidfVectorizer(max_features=5000, stop_words='english'), 'name'),
   ('desc_tfidf', TfidfVectorizer(max_features=10000, stop_words='english'), 'item_description')
 ])
@@ -306,7 +306,7 @@ def make_ridge_pipeline(model):
   preprocessor = ColumnTransformer([
       ('num', numeric_preproc, numeric_minmax + numeric_log),
       ('cat', cat_target_mean_pipe, cat_cols),
-      ('text', text_preproc_lm, text_cols),
+      ('text', text_preproc_ridge, text_cols),
       ('pass', 'passthrough', cols_other)
   ])
   
