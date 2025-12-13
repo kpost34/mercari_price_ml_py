@@ -32,8 +32,8 @@ fixed_colors = {
   'price_log': 'green',
   'has_cat_name': 'blue',
   'has_brand': 'blue',
-  'has_desc': 'blue',
-  'has_keyword_new': 'blue'
+  'has_desc': 'blue'
+  # 'has_keyword_new': 'blue'
 }
 
 
@@ -65,6 +65,86 @@ def map_avg_price(df, var):
 ## Function to conduct a log transformation
 def log_transform(x):
     return np.log1p(x)
+
+
+## Function to get Boolean keyword features from item_description
+def create_boolean_desc_features(df):
+  # Create list-objects
+  list_new_like = ['new', 'never used', 'unused', 'never opened', 'unopened', 'pristine', 
+                 'mint','unworn', 'never worn', 'original packaging', 'NIB', 'NIWT',
+                 'just arrived', 'recently released', 'factory sealed']
+  list_used_like = ['used', 'pre-owned', 'worn', 'second-hand', 'second hand',
+                    'refurbished', 'open box']
+  list_authentic_like = ['authentic', 'original', 'official', 'genuine']
+  list_rare_like = ['rare', 'limited edition', 'limited run', 'exclusive', 'unique', 'vintage']
+  list_set_like = ['set', 'bundle', 'lot', 'pack', 'collection', 'combo']
+
+
+  # Build dictionaries
+  list_cats = ['new', 'used', 'authentic', 'rare', 'set']
+  list_cats_full = ['has_keyword_' + cat + '_like' for cat in list_cats]
+  dict_keywords = dict(
+                    zip(list_cats_full, 
+                       [list_new_like, list_used_like, list_authentic_like, list_rare_like, 
+                       list_set_like]
+                    )
+                  )
+
+  dict_keywords_str = {}
+    
+  for cat, keywords in dict_keywords.items():
+    dict_keywords_str[cat] = '|'.join(keywords)
+
+  # Create Boolean features
+  for cat, string in dict_keywords_str.items():
+    df[cat] = df['item_description'].str.contains(string, case=False, na=False)
+  
+  return df
+
+
+## Function to prepare features for pipeline
+def prepare_features(df):
+    
+    # Fill missing text fields
+    #item_description
+    df['item_description'] = df['item_description'].fillna('No item description')
+    df['item_description'] = df['item_description'].replace('No description yet', 
+                                                            'No item description')
+                                                            
+    #brand_name
+    df['brand_name'] = df['brand_name'].fillna('Unknown')
+    
+    #category_name
+    df['category_name'] = df['category_name'].fillna('Unknown/Unknown/Unknown')
+    
+    
+    # Split category_name into three data fields
+    cols_cat_name = ['department', 'category', 'class']
+    df[cols_cat_name] = df['category_name'].str.split('/', n=2, expand=True)
+    
+    
+    # Encode categories
+    cols_cats = cols_cat_name + ['brand_name']
+    df[cols_cats] = df[cols_cats].apply(lambda x: x.astype('category'))
+    
+    
+    # Word/character counts
+    df['name_wc'] = df['name'].apply(lambda x: len(x.split(' ')))
+    df['desc_wc'] = df['item_description'].apply(lambda x: len(x.split(' ')))
+    
+    df['name_len'] = df['name'].str.len()
+    df['desc_len'] = df['item_description'].str.len()
+    
+    
+    # Boolean flags
+    df['has_cat_name'] = df['category_name'] != 'Unknown/Unknown/Unknown'
+    df['has_brand'] = df['brand_name'] != 'Unknown'
+    df['has_desc'] = df['item_description'] != 'No item description'
+    
+    #specific categories of keywords
+    df = create_boolean_desc_features(df)
+    
+    return df
 
 
 ## Function to compute correlation ratio
@@ -248,7 +328,8 @@ class TargetMeanEncoder(BaseEstimator, TransformerMixin):
 # Encoding/feature-engineering Pipeline Preprocessors & Functions===================================
 ## Pass-through columns
 cols_other = ['item_condition_id', 'shipping', 'has_cat_name', 'has_brand', 'has_desc', 
-              'has_keyword_new']
+              'has_keyword_new_like', 'has_keyword_authentic_like', 'has_keyword_used_like',
+              'has_keyword_rare_like', 'has_keyword_set_like']
 
 ## Preprocessors
 ### Numeric processing
@@ -269,13 +350,15 @@ numeric_preproc = ColumnTransformer([
 text_cols = ['name', 'item_description']
 
 #Ridge
+#linear algebra scales well with sparse matrices so no dim reduction needed
 text_preproc_ridge = ColumnTransformer([
-  ('name_tfidf', TfidfVectorizer(max_features=5000, stop_words='english'), 'name'),
-  ('desc_tfidf', TfidfVectorizer(max_features=10000, stop_words='english'), 'item_description')
+  ('name_tfidf', TfidfVectorizer(max_features=7000, stop_words='english'), 'name'),
+  ('desc_tfidf', TfidfVectorizer(max_features=12000, stop_words='english'), 'item_description')
 ])
 
 
 #RF
+#requires dim reduction and fewer features to be computationally feasible
 text_preproc_rf = ColumnTransformer([
     ('name_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=1000, stop_words='english')), 
                              ('svd', TruncatedSVD(n_components=20))]), 'name'),
@@ -285,11 +368,12 @@ text_preproc_rf = ColumnTransformer([
 
 
 #XGB
+#requires dim reduction but is computationally better at handling more features
 text_preproc_xgb = ColumnTransformer([
-    ('name_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=2000, stop_words='english')), 
-                             ('svd', TruncatedSVD(n_components=50))]), 'name'),
-    ('desc_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=4000, stop_words='english')), 
-                             ('svd', TruncatedSVD(n_components=100))]), 'item_description')
+    ('name_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=5000, stop_words='english')), 
+                             ('svd', TruncatedSVD(n_components=100))]), 'name'),
+    ('desc_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=8000, stop_words='english')), 
+                             ('svd', TruncatedSVD(n_components=150))]), 'item_description')
 ])
 
 
