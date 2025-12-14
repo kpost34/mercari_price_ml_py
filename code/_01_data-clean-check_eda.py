@@ -1,25 +1,22 @@
 # This script does initial data cleaning/wrangling and performs EDA
 
-
-# Load Libraries and Change WD======================================================================
+# Load Libraries, Data, and Functions===============================================================
 ## Load libraries
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-## Change wd
-from pathlib import Path
-import os
-Path.cwd()
-root = '/Users/keithpost/Documents/Python/Python projects/mercari_price_ml_py/'
-os.chdir(root + 'code')
-Path.cwd()
+
+## Data
+ROOT = Path.cwd()
+data_path_in = ROOT / "data" / "train.tsv"
+df0 = pd.read_csv(data_path_in, sep='\t')
 
 
-# Source Functions and Data=========================================================================
 ## Functions
-from _00_helper_objs_fns import (
+from code._00_helper_objs_fns import (
   fixed_colors, 
   get_top_cat, 
   add_top_cat, 
@@ -28,10 +25,6 @@ from _00_helper_objs_fns import (
   make_barplot,
   make_scatter
 )
-
-## Data
-os.chdir(root + 'data')
-df0 = pd.read_csv("train.tsv", sep='\t')
 
 
 
@@ -487,6 +480,7 @@ plt.close()
 
 
 # Save DF===========================================================================================
-pd.to_pickle(df, "train_clean.pkl")
+data_path_out = ROOT / "data" / "train_clean.pkl"
+# pd.to_pickle(df, data_path_out)
 
 
