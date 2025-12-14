@@ -32,8 +32,9 @@ fixed_colors = {
   'price_log': 'green',
   'has_cat_name': 'blue',
   'has_brand': 'blue',
-  'has_desc': 'blue'
-  # 'has_keyword_new': 'blue'
+  'has_desc': 'blue',
+  'has_keyword_new': 'blue',
+  'has_keyword_authentic_like': 'blue'
 }
 
 
@@ -149,21 +150,6 @@ def prepare_features(df):
 
 ## Function to compute correlation ratio
 def correlation_ratio(categories, values):
-    """
-    Compute the correlation ratio (eta) between a categorical and a numerical variable.
-    
-    Parameters
-    ----------
-    categories : array-like
-        Categorical variable (e.g. strings, ints, or categories).
-    values : array-like
-        Numeric variable.
-    
-    Returns
-    -------
-    eta : float
-        Correlation ratio between 0 and 1.
-    """
     # Convert to arrays
     categories = np.array(categories)
     values = np.array(values)
@@ -352,8 +338,8 @@ text_cols = ['name', 'item_description']
 #Ridge
 #linear algebra scales well with sparse matrices so no dim reduction needed
 text_preproc_ridge = ColumnTransformer([
-  ('name_tfidf', TfidfVectorizer(max_features=7000, stop_words='english'), 'name'),
-  ('desc_tfidf', TfidfVectorizer(max_features=12000, stop_words='english'), 'item_description')
+  ('name_tfidf', TfidfVectorizer(max_features=25000, stop_words='english'), 'name'),
+  ('desc_tfidf', TfidfVectorizer(max_features=30000, stop_words='english'), 'item_description')
 ])
 
 
