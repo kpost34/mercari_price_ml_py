@@ -1,34 +1,25 @@
 #ARCHIVED: script to check pairwise collinearity of features as part of feature selection. No 
   #longer necessary since LM was not considered a prospective model. Features may have been dropped
   #for ridge regression to reduce computational demand
-
-# Load Libraries and Change WD======================================================================
+  
+# Load Libraries, Data, and Functions===============================================================
 ## Load libraries
+from pathlib import Path
 import pandas as pd              
 import numpy as np                
 import itertools                  
 from sklearn.metrics import matthews_corrcoef  
-from scipy.stats import chi2_contingency       
-
-
-## Change wd
-from pathlib import Path
-import os
-Path.cwd()
-root = '/Users/keithpost/Documents/Python/Python projects/mercari_price_ml_py/'
-os.chdir(root + 'code')
-Path.cwd()
-
-
-
-# Source Functions and Data=========================================================================
-## Functions
-from _00_helper_objs_fns import correlation_ratio
+from scipy.stats import chi2_contingency   
 
 
 ## Data
-os.chdir(root + 'data')
-df = pd.read_pickle("train_collinear_test.pkl")
+ROOT = Path.cwd()
+data_path_in = ROOT / "data" / "train_collinear_test.pkl"
+df = pd.read_pickle(data_path_in)
+
+
+## Functions
+from code._00_helper_objs_fns import correlation_ratio
 
 
 
