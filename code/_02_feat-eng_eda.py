@@ -1,7 +1,8 @@
 # This script performs feature engineering and secondary EDA
 
-# Load Libraries and Change WD======================================================================
+# Load Libraries, Data, and Functions===============================================================
 ## Load libraries
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -11,19 +12,14 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import FunctionTransformer
 
 
-## Change wd
-from pathlib import Path
-import os
-Path.cwd()
-root = '/Users/keithpost/Documents/Python/Python projects/mercari_price_ml_py/'
-os.chdir(root + 'code')
-Path.cwd()
+## Data
+ROOT = Path.cwd()
+data_path_in = ROOT / "data" / "train_clean.pkl"
+df = pd.read_pickle(data_path_in)
 
 
-
-# Source Functions and Data=========================================================================
 ## Functions
-from _00_helper_objs_fns import (
+from code._00_helper_objs_fns import (
   fixed_colors, 
   make_countplot, 
   make_histplot, 
@@ -32,11 +28,6 @@ from _00_helper_objs_fns import (
   log_transform,
   create_boolean_desc_features
 )
-
-
-## Data
-os.chdir(root + 'data')
-df = pd.read_pickle("train_clean.pkl")
 
 
 
@@ -120,17 +111,9 @@ df.groupby('has_keyword_set_like', as_index=False)['price_log'].mean()
 
 df.groupby('has_keyword_new', as_index=False)['price_log'].mean()
 
-#plots
-sns.barplot(data=df, x='has_keyword_new', y='price_log')
-plt.show()
-plt.close()
 
-sns.barplot(data=df, x='has_keyword_new_like', y='price_log')
-plt.show()
-plt.close()
-
-
-### Univariate plot
+### Univariate plots
+#new
 labs_new = ['No', 'Yes']
 ax = sns.countplot(data=df, x='has_keyword_new', color=fixed_colors['has_keyword_new'])
 ax.set_xticklabels(labs_new)
@@ -144,6 +127,7 @@ plt.close()
 
 
 ### Bivariate plots
+#new
 fig, axes = plt.subplots(1, 2)
 
 make_barplot(df=df, var='has_keyword_new', y='price', xlabs=labs_new, 
@@ -154,6 +138,22 @@ make_barplot(df=df, var='has_keyword_new', y='price_log', xlabs=labs_new,
 fig.suptitle("Average prices (raw and log-transformed) by whether item has keyword 'new'",
              fontsize=11)
              
+plt.show()
+plt.close()
+
+#authentic-like
+fig, axes = plt.subplots(1, 2)
+
+make_barplot(df=df, var='has_keyword_authentic_like', y='price', xlabs=labs_new, 
+             ytitle='Mean Price ($) (\u00B1 1 SE)', xtitle='', alpha=0.7, ax=axes[0])
+make_barplot(df=df, var='has_keyword_authentic_like', y='price_log', xlabs=labs_new, 
+             ytitle='Mean Log-Transformed Price ($) (± 1 SE)', xtitle='', alpha=0.7, ax=axes[1])
+               
+fig.suptitle("Average prices (raw and log-transformed) by whether item has keywords related to 'authentic'",
+             fontsize=11)
+fig.supxlabel("Description contains keywords related to 'authentic'", fontsize=9)
+    
+plt.tight_layout()         
 plt.show()
 plt.close()
 
@@ -239,7 +239,8 @@ len(redundant_cols) #0
 
 
 ## Functional redundancy or strong collinearity
-# pd.to_pickle(df, "train_collinear_test.pkl")
+# data_path_out_archive = ROOT / "data" / "train_collinear_test.pkl"
+# pd.to_pickle(df, data_path_out_archive)
 # see archive for details on some pairwise correlational tests
 #note: ultimately did not weight heavily because LM was dropped as a prospective model which is
   #greatly affected by collinearity and with TF-IDF would require an iterative drop-refit process
@@ -275,5 +276,6 @@ df_mod_full[cols_bool] = df_mod_full[cols_bool].astype(int)
 
 
 # Save DF===========================================================================================
-# pd.to_pickle(df_mod_full, "train_clean_feat.pkl")
+data_path_out = ROOT / "data" / "train_clean_feat.pkl"
+# pd.to_pickle(df_mod_full, data_path_out)
 
