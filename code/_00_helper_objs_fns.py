@@ -38,6 +38,7 @@ fixed_colors = {
 }
 
 
+
 # Feature Engineering Functions=====================================================================
 ## Functions to get top 5 known categories and add them + remaining to DF
 def get_top_cat(df, var, n, remain=False):
@@ -317,6 +318,7 @@ cols_other = ['item_condition_id', 'shipping', 'has_cat_name', 'has_brand', 'has
               'has_keyword_new_like', 'has_keyword_authentic_like', 'has_keyword_used_like',
               'has_keyword_rare_like', 'has_keyword_set_like']
 
+
 ## Preprocessors
 ### Numeric processing
 #numeric columns
@@ -361,7 +363,6 @@ text_preproc_xgb = ColumnTransformer([
     ('desc_tfidf', Pipeline([('tfidf', TfidfVectorizer(max_features=8000, stop_words='english')), 
                              ('svd', TruncatedSVD(n_components=150))]), 'item_description')
 ])
-
 
 
 ## Function to create a liner model pipeline

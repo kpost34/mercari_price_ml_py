@@ -29,13 +29,9 @@ cols_to_retain = ['item_condition_id', 'shipping', 'name_wc', 'desc_len', 'dpt_t
                   'cat_top5', 'class_top5', 'brand_top5', 'has_cat_name', 'has_brand',
                   'has_desc', 'has_keyword_new', 'dpt_top5_lprice', 'cat_top5_lprice',
                   'class_top5_lprice', 'brand_top5_lprice', 'item_condition_id_lprice']
-# cols_to_drop = ['train_id', 'name', 'category_name', 'brand_name', 'price', 'item_description',
-#                 'department', 'category', 'class', 'desc_wc', 'name_len', 'price_log']
               
 df_retained = df[cols_to_retain]
 df_retained.info()
-# df_dropped = df.drop(cols_to_drop, axis=1)
-# df_dropped.info() #17
 
 
 ## Split data into separate types
