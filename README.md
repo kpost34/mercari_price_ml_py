@@ -1,4 +1,4 @@
-# **Mercari Price ML Project**
+# **Mercari Price Machine Learning Project**
 This project predicts item prices on the Mercari marketplace using structured metadata and unstructured text fields (item names and descriptions). Multiple machine learning models were evaluated, with a focus on balancing predictive performance and computational efficiency.
 
 ## Summary
