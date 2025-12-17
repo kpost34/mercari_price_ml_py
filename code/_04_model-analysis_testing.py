@@ -31,7 +31,7 @@ from code._00_helper_objs_fns import (
 
 
 # Model Analysis====================================================================================
-## Extract X and y fro training set--------------------
+## Extract X and y from training set--------------------
 X_train_pre = df.drop(columns=['price_log', 'price'])
 y_train_obs = df['price_log']
 
@@ -42,6 +42,11 @@ y_train_pred = best_ridge.predict(X_train_pre)
 
 df_y_train = pd.DataFrame({'y_obs': y_train_obs, 
                            'y_pred': y_train_pred})
+                           
+#save DF
+# data_path_out = ROOT / "data" / "train_price.csv"
+# df_y_train.to_csv(data_path_out)
+
 
 #make plot
 p1 = sns.scatterplot(data=df_y_train, 
@@ -107,6 +112,7 @@ df_coef = pd.DataFrame({
   'coef': coefs
 })
 
+
 df_coef['coef_abs'] = df_coef['coef'].abs()
 cond_feat = [(df_coef['feature'].str.startswith('tfidf_desc_')),
               (df_coef['feature'].str.startswith('tfidf_name_'))]
@@ -116,12 +122,15 @@ df_coef['name_desc_other'] = np.select(cond_feat, choice_feat, default='other')
 name_desc_colors = {'name': 'darkred',
                     'desc': 'darkblue'}
 
+#save DF
+# data_path_out2 = ROOT / "data" / "model_coefs.csv"
+# df_coef.to_csv(data_path_out2)
+
 
 ### Plot results
 #### TF-IDF features
 df_coef_name_desc = df_coef[df_coef['name_desc_other']!='other']
 df_coef_name_desc['feature'] = df_coef_name_desc['feature'].str.replace('tfidf_(name|desc)_', '', regex=True)
-df_coef_name_desc
 
 df_coef_pos = df_coef_name_desc.sort_values('coef', ascending=False).iloc[0:10]
 df_coef_neg = df_coef_name_desc.sort_values('coef', ascending=True).iloc[0:10]
@@ -164,16 +173,17 @@ df_coef_other = df_coef[df_coef['name_desc_other']=='other'].sort_values('coef',
 
 
 #make plot
-p3 = sns.barplot(df_coef_other, y='feature', x='coef', color='darkgreen', legend=False)
-p3.axvline(x=0, color="black", linestyle="-", linewidth=1)
+p2 = sns.barplot(df_coef_other, y='feature', x='coef', color='darkgreen', legend=False)
+p2.axvline(x=0, color="black", linestyle="-", linewidth=1)
 
-p3.set_xlabel('Coefficient')
-p3.set_ylabel('Feature')
-p3.set_title('Coefficients of non-TF-IDF features of final model \non training data')
+p2.set_xlabel('Coefficient')
+p2.set_ylabel('Feature')
+p2.set_title('Coefficients of non-TF-IDF features of final model \non training data')
 
 plt.tight_layout()
 plt.show()
 plt.close()
+
 
 
 # Run Model Predictions=============================================================================
@@ -194,3 +204,5 @@ y_pred = best_ridge.predict(X_test_pre)
 df_pred = pd.DataFrame({'price_log_pred': y_pred})
 df_test_pred = pd.concat([X_test_pre, df_pred], axis=1)
 df_test_pred.head()
+#NOTE: observed prices for stage 1 test data are unavailable
+
