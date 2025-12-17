@@ -63,10 +63,8 @@ ridge_pipe1=make_ridge_pipeline(ridge_model1)
 ridge_scores1=cross_val_score(ridge_pipe1, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 ridge_scores1 
 ridge_scores1.mean() 
-#newest 0.50019 (25K/30K)
-#newer: 0.50546 #new + increased TF-IDF name and desc features by 2K each
-#new: 0.5096 #new boolean keyword matching field in item description
-#old: 0.5098
+#RMSLE: 0.50019 
+
 
 #alpha = 1.0
 ridge_model2 = Ridge(alpha=1.0, solver='auto')
@@ -74,19 +72,8 @@ ridge_pipe2=make_ridge_pipeline(ridge_model2)
 ridge_scores2=cross_val_score(ridge_pipe2, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 ridge_scores2 
 ridge_scores2.mean() 
-#0.4960 (20K/50K)
-#0.49589 (25K/30K) <--
-#0.49663 (20K/25K)
-#0.49738 (17K/22K)
-#0.49814 (15K/20K)
-#0.49919 (13K/18K)
-#0.5005 (11K/16K)
-#0.5014 (10K/15K)
-#0.5024 (9K/14K)
-#0.5036 (8K/13K)
-#newer: 0.50498 (7K/12K) #best
-#new: 0.5093 (5K/10K + new boolean fields)
-#old: 0.5095 (5K/10K)
+#0.49589 
+
 
 #alpha = 10.0
 ridge_model3 = Ridge(alpha=10.0, solver='auto')
@@ -94,37 +81,32 @@ ridge_pipe3=make_ridge_pipeline(ridge_model3)
 ridge_scores3=cross_val_score(ridge_pipe3, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 ridge_scores3 
 ridge_scores3.mean() 
-#newest: 0.49793 (25K/30K)
-#newer: 0.50524
-#new: 0.5095
-#old: 0.5096
+#0.49793 
 
-#newer: Best: alpha = 1.0 -> RMSLE = 0.505498
-#new: Best: alpha = 1.0 -> RMSLE = 0.5093
-#old: Best: alpha = 1.0 -> RMSLE = 0.5095
+# Best RR: alpha = 1.0; RMSLE = 0.49589
 
 
-### Tree model example (set for older machine)
-# tree_model = RandomForestRegressor(random_state=42)
+### Random Forest 
+#create model and pipeline
 tree_model = RandomForestRegressor(
-    n_estimators=50,       # Reduced number of trees
-    max_depth=10,          # Limited tree depth
-    min_samples_leaf=5,    # Increased minimum samples per leaf
-    max_features='sqrt',   # Limited features for splitting
-    n_jobs=-1,             # Use all available CPU cores
-    random_state=42        # For reproducibility
+    n_estimators=50,       
+    max_depth=10,         
+    min_samples_leaf=5,    
+    max_features='sqrt',   
+    n_jobs=-1,            
+    random_state=42       
 )
 tree_pipe = make_tree_pipeline(tree_model)
 
-#score using RMSE
+#run cross-validation
 tree_scores = cross_val_score(tree_pipe, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 tree_scores
 tree_scores.mean()
-#new: 0.6342
-#old: 0.6366
+#0.6342
 
 
-### XGBoost example (set for older machine)
+### XGBoost  
+#create model and pipeline
 xgb_model = XGBRegressor(
     tree_method='hist',
     max_depth=4,
@@ -132,60 +114,45 @@ xgb_model = XGBRegressor(
     n_jobs=4,  
     learning_rate=0.2,
     subsample=0.7,
-    random_state=42 # For reproducibility
+    random_state=42 
 )
 xgb_pipe = make_xgb_pipeline(xgb_model)
 
+#run cross-validation
 xgb_scores = cross_val_score(xgb_pipe, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 xgb_scores
 xgb_scores.mean()
-#newer: 0.5858 #new + +3 K/+4 K and +50/+50
-#new: 0.5918 #new boolean keyword fields
-#old: 0.5925
+#0.5858 
+
 
 
 # Hyperparameter Tuning=============================================================================
 ## Given the RMSLE scores using specified settings with 3 folds...
 
   #best
-  
-  
-  
-  #second and third runs...
-  #RR: 0.50546
+  #RR: 0.49589
   #RF: 0.6342
   #XGB: 0.5858
-#...tune RR (try new alphas) & XGB models
-  
-  #original run...
-  #Ridge Regression: 0.5095
-  #RF: 0.637
-  #XGB: 0.5925
-#...tune RR & XGB models
+  #...tune RR & XGB models
 
 
-## Ridge Regression tuning
-#try more alphas
-#alpha = 0.01
-ridge_model4 = Ridge(alpha=0.01, solver='auto')
+## Ridge Regression tuning (test more alphas)
+#alpha = 0.5
+ridge_model4 = Ridge(alpha=0.5, solver='auto')
 ridge_pipe4 = make_ridge_pipeline(ridge_model4)
 ridge_scores4=cross_val_score(ridge_pipe4, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 ridge_scores4 
 ridge_scores4.mean() 
-#newest: 0.50172 (25K/30K)
-#newer: 0.50554
-#old: 0.5098
+#0.49730 
 
 
-#alpha = 100.0
-ridge_model5 = Ridge(alpha=100.0, solver='auto')
-ridge_pipe5=make_ridge_pipeline(ridge_model5)
+#alpha = 5.0
+ridge_model5 = Ridge(alpha=5.0, solver='auto')
+ridge_pipe5 = make_ridge_pipeline(ridge_model5)
 ridge_scores5=cross_val_score(ridge_pipe5, X, y, cv=cv, scoring=rmsle_equiv_scorer)
 ridge_scores5 
 ridge_scores5.mean() 
-#newest: 0.5229 (25K/30K)
-#Newer: 0.5229 (best is still alpha = 0.1 with RMSLE = 0.50546)
-#Old: 0.5243 (best is still alpha = 1.0 with RMSLE = 0.5095)
+#0.49556 [best model]
 
 
 #choose best ridge regression model
@@ -196,14 +163,12 @@ ridge_dict = {'ridge_1': ridge_scores1.mean(),
               'ridge_5': ridge_scores5.mean()
               }
 
-ridge_best_model = max(ridge_dict, key=ridge_dict.get)
-ridge_best_model 
-
-best_ridge = ridge_pipe2
+best_ridge = max(ridge_dict, key=ridge_dict.get)
+best_ridge = ridge_pipe5 #to avoid re-running all models
 
 
 ## XGB tuning
-### Define pipeline
+### Define model & pipeline
 xgb_model = XGBRegressor(
   tree_method='hist', 
   n_jobs=4,
@@ -248,17 +213,15 @@ random_search.best_params_
 #{'model__subsample': 0.7, 'model__reg_lambda': 1, 'model__reg_alpha': 0.1, 
   #'model__n_estimators': 600, 'model__max_depth': 4, 'model__learning_rate': 0.1, 
   #'model__colsample_bytree': 0.6}
-#New: 0.5625
-#Old: 0.571
+#0.5625
 
 
-### Evaluate model on cross-validation or a holdout set
+### Evaluate model on cross-validation set
 xgb_cv_scores=cross_val_score(best_xgb, X, y, cv=3, scoring=rmsle_equiv_scorer)
 -xgb_cv_scores.mean()
-#New: 0.5632
-#Old: 0.571
+#0.5632
 
-#compare with best ridge regression (0.50546) --> best = ridge regression
+#compare with best ridge regression (0.49589) --> best = ridge regression
 
 
 ## Retrain the best model on all training data
