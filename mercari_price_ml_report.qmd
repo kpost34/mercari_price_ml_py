@@ -35,7 +35,6 @@ execute:
 </style>
 ```
 
-
 ```{python}
 
 #| label: data_setup
@@ -73,7 +72,7 @@ from _00_helper_objs_fns import(
 
 ## I. Executive Summary
 
-The Mercari marketplace app is Japan’s most popular community-driven platform to buy and sell clothing, books, electronics, and collectibles. Listings contain structured fields (e.g., brand, item condition, shipping) and unstructured fields (e.g., name, description), making them ideal for a machine learning model that combines numeric, categorical, and text-derived features to predict prices. Ridge Regression, Random Forest, and XGBoost models were trained using cross-validation on a resource-limited machine (8 GB RAM). Initial results showed Ridge Regression (root mean-squared log error (RMSLE) = 0.496) and XGBoost (RMSLE = 0.586) performed best. After hyperparameter tuning, Ridge Regression achieved the lowest RMSLE (0.496). Future improvements include additional features, more complex models, and training at scale.
+The Mercari marketplace app is Japan’s most popular community-driven platform to buy and sell clothing, books, electronics, and collectibles. Listings contain structured fields (e.g., brand, item condition, shipping) and unstructured fields (e.g., name, description), making them ideal for a machine learning model that combines numeric, categorical, and text-derived features to predict prices. Ridge Regression, Random Forest, and XGBoost models were trained using cross-validation on a resource-limited machine (8 GB RAM). Initial results showed Ridge Regression (root mean-squared log error (RMSLE) = 0.496) and XGBoost (RMSLE = 0.586) performed best. After hyperparameter tuning, Ridge Regression achieved the lowest RMSLE (0.496). Future improvements include additional features, more complex models, and training at scale. 
 <br>
 
 ## II. Data Exploration
@@ -109,22 +108,22 @@ plt.show()
 plt.close()
 
 ```
+
 *Note: Most items are concentrated at lower price ranges; a few rare items have much higher prices that are not visible in the raw price histogram.*
 
-<br>
+<br> 
 **Text length / word count features:** Word counts and character lengths were calculated for the *name* and *item_description* fields. Because word counts and lengths were highly correlated (*name*: $\rho$ = 0.885; *item_description*: $\rho$ = 0.993), *name_wc* and *desc_len* were retained due to their stronger correlation with *price_log* ($\rho$ = 0.0523 and 0.0684, respectively; *Table 1*).
 
-
-| Feature    | Data Field         | Metric     | Range  | Correlation with *price_log* ($\rho$) |
-|------------|--------------------|------------|--------|---------------------------------------|
-| *name_wc*  | *name*             | word count | 1-17   | 0.0523                                |
-| *name_len* | *name*             | length     | 1-43   | 0.0498                                |
-| *desc_wc*  | *item_description* | word count | 1-245  | 0.0681                                |
-| *desc_len* | *item_description* | length     | 1-1046 | 0.0684                                |
+| Feature | Data Field | Metric | Range | Correlation with *price_log* ($\rho$) |
+|------------|------------|------------|------------|------------------------|
+| *name_wc* | *name* | word count | 1-17 | 0.0523 |
+| *name_len* | *name* | length | 1-43 | 0.0498 |
+| *desc_wc* | *item_description* | word count | 1-245 | 0.0681 |
+| *desc_len* | *item_description* | length | 1-1046 | 0.0684 |
 
 : Table 1. Ranges of word counts, lengths, and their correlations with the target variable (*price_log*) for the *name* and *item_description* fields in the training set {.striped .hover}
 
-<br>
+<br> 
 **Target-mean encoding:** *item_condition_id* was target-mean encoded due to its relationship with the target variable.
 
 **Rare-label and target-mean encoding:** Given the large numbers of categories in the four categorical fields (*department*, *category*, *class*, *brand_name*), the five most frequent known categories of each variable were retained while the remainder were binned into a single category, "Remaining." Their relationships with mean log-transformed prices were visualized (*Fig. 2*), showing variability across categories per encoded variable and thus more potential features.
@@ -132,7 +131,7 @@ plt.close()
 ```{python}
 
 #| label: fig_top5_cat_price
-#| fig-cap: "Figure 2. Average log-transformed prices by *department*, *category*, *class*, and *brand_name* \n(5 most common and remaining)"
+#| fig-cap: "Figure 2. Average log-transformed prices by *department*, *category*, *class*, and *brand_name* (5 most common and remaining)"
 
 # Create objects
 #department
@@ -175,12 +174,12 @@ plt.close()
 
 ```
 
-<br>
+<br> 
 **Boolean presence/absence:** Boolean indicators were created to capture the presence of values in *category_name*, *brand_name*, and *item_description* (i.e., *has_cat_name*, *has_brand*, *has_desc*, respectively). Each feature was set to True when the corresponding field contained a known value and False otherwise.
 
 **Boolean keyword matches:** Keyword groups from *item_description* (i.e., new, used, authentic, rare, set) were used to create Boolean indicators capturing item-specific characteristics relevant to pricing.
 
-**Remaining features:** Structured features like *item_condition_id* and *shipping* were retained for modeling due to their clear interpretation and relevance to the target variable.
+**Remaining features:** Structured features like *item_condition_id* and *shipping* were retained for modeling due to their clear interpretation and relevance to the target variable. 
 <br>
 
 ## III. Feature Engineering & Modeling
@@ -240,16 +239,16 @@ The Ridge Regression model with $\alpha = 1.0$ performed the best (RMSLE = 0.495
 
 ### D. Hyperparameter tuning
 
-Ridge Regression and XGBoost models were tuned to optimize performance on the training set. For Ridge Regression, models were fit with $\alpha$ values of 0.5 (RMSLE = 0.4973) and 5.0 (RMSLE = 0.4956), both close to the best-performing model from the initial batch. 
+Ridge Regression and XGBoost models were tuned to optimize performance on the training set. For Ridge Regression, models were fit with $\alpha$ values of 0.5 (RMSLE = 0.4973) and 5.0 (RMSLE = 0.4956), both close to the best-performing model from the initial batch.
 
 XGBoost tuning involved a hyperparameter search space of 192 combinations, with 8 random selections yielding an RMSLE improvement of ~0.023 (final RMSLE = 0.5632).
 
-The Ridge Regression model with $\alpha = 0.5$ outperformed all other models on the Mercari training set with these features.
+The Ridge Regression model with $\alpha = 0.5$ outperformed all other models on the Mercari training set with these features. 
 <br>
 
 ## IV. Results & Interpretation
 
-**Figure 3** shows that the model tends to over-predict log prices.
+*Figure 3* shows that the model tends to over-predict log prices.
 
 ```{python}
 
@@ -270,7 +269,7 @@ plt.close()
 
 ```
 
-<br>
+<br> 
 The top 10 most impactful features, both positive and negative, in the final model are all TF-IDF features (*Fig. 4*). Among the most influential positive features were *yurman*, *tyme*, and *tria* (all from *name*), while the most impactful negative features were *sticker* (from *name*), *communicates* (from *item_description*), and *rilakkumma* (from *item_description*).
 
 ```{python}
@@ -320,8 +319,8 @@ plt.close()
 
 ```
 
-<br>
-Among non-TF-IDF features, *name_wc* and target-mean encoded *category* and *department* had the strongest positive influence on price (coefficients > 0.4), while *shipping* was most negative (coefficient < -0.2).
+<br> 
+Among non-TF-IDF features, *name_wc* and target-mean encoded *category* and *department* had the strongest positive influence on price (coefficients > 0.4), while *shipping* was most negative (coefficient < -0.2). 
 <br>
 
 ## V. Conclusion & Next Steps
@@ -329,18 +328,19 @@ Among non-TF-IDF features, *name_wc* and target-mean encoded *category* and *dep
 ### A. Key Takeaways
 
 **Ridge Regression outperformed more complex models**: Despite testing several algorithms, Ridge Regression with $\alpha = 5.0$ provided the best performance. This shows that simpler models, when well-tuned, can be highly effective in noisy and resource-limited environments.
-  
+
 **Text features were dominant**: TF-IDF features from *name* and *item_description* contributed most to the top coefficients, significantly lowering RMSLE for Ridge Regression. This emphasizes the importance of thoughtful text preprocessing and feature extraction, even with limited compute resources.
-  
-**Non-text features showed strong predictive power**: *name_wc*, target-mean encoded *category*, and *target-mean encoded *department* had the largest coefficients among non-TF-IDF features (absolute values > 0.4). This demonstrates that structured metadata, like category and department, plays a key role in pricing models.
+
+**Non-text features showed strong predictive power**: *name_wc*, target-mean encoded *category*, and target-mean encoded *department* had the largest coefficients among non-TF-IDF features (absolute values > 0.4). This demonstrates that structured metadata, like category and department, plays a key role in pricing models.
 
 ### B. Future Improvements
 
-**Refine feature engineering**: Experiment with n-grams (bigrams, trigrams) for *item_description* to capture more nuanced product information.  
+**Refine feature engineering**: Experiment with n-grams (bigrams, trigrams) for *item_description* to capture more nuanced product information.
 
-**Explore brand–category interactions**: Analyze finer-grained brand–category combinations to uncover patterns affecting pricing.  
+**Explore brand–category interactions**: Analyze finer-grained brand–category combinations to uncover patterns affecting pricing.
 
-**Binning brands**: Group brands into price tiers (e.g., high-end vs. budget) to better isolate pricing patterns.  
+**Binning brands**: Group brands into price tiers (e.g., high-end vs. budget) to better isolate pricing patterns.
+
 **Experiment with more complex models**: Advanced approaches such as LightGBM, stacked ensembles, or deep learning could improve generalization, especially with more computational resources.
 
 <br>

@@ -158,11 +158,11 @@ window.Quarto = {
 <table class="table-striped table-hover caption-top table">
 <caption>Table 1. Ranges of word counts, lengths, and their correlations with the target variable (<em>price_log</em>) for the <em>name</em> and <em>item_description</em> fields in the training set</caption>
 <colgroup>
-<col style="width: 13%">
-<col style="width: 21%">
-<col style="width: 13%">
-<col style="width: 8%">
-<col style="width: 42%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 33%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -307,7 +307,7 @@ window.Quarto = {
 </section>
 <section id="iv.-results-interpretation" class="level2">
 <h2 class="anchored" data-anchor-id="iv.-results-interpretation">IV. Results &amp; Interpretation</h2>
-<p><strong>Figure 3</strong> shows that the model tends to over-predict log prices.</p>
+<p><em>Figure 3</em> shows that the model tends to over-predict log prices.</p>
 <div id="cell-fig_pred_obs_price" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div id="fig_pred_obs_price" class="quarto-figure quarto-figure-center anchored">
@@ -337,14 +337,14 @@ window.Quarto = {
 <h3 class="anchored" data-anchor-id="a.-key-takeaways">A. Key Takeaways</h3>
 <p><strong>Ridge Regression outperformed more complex models</strong>: Despite testing several algorithms, Ridge Regression with <span class="math inline">\(\alpha = 5.0\)</span> provided the best performance. This shows that simpler models, when well-tuned, can be highly effective in noisy and resource-limited environments.</p>
 <p><strong>Text features were dominant</strong>: TF-IDF features from <em>name</em> and <em>item_description</em> contributed most to the top coefficients, significantly lowering RMSLE for Ridge Regression. This emphasizes the importance of thoughtful text preprocessing and feature extraction, even with limited compute resources.</p>
-<p><strong>Non-text features showed strong predictive power</strong>: <em>name_wc</em>, target-mean encoded <em>category</em>, and <em>target-mean encoded </em>department* had the largest coefficients among non-TF-IDF features (absolute values &gt; 0.4). This demonstrates that structured metadata, like category and department, plays a key role in pricing models.</p>
+<p><strong>Non-text features showed strong predictive power</strong>: <em>name_wc</em>, target-mean encoded <em>category</em>, and target-mean encoded <em>department</em> had the largest coefficients among non-TF-IDF features (absolute values &gt; 0.4). This demonstrates that structured metadata, like category and department, plays a key role in pricing models.</p>
 </section>
 <section id="b.-future-improvements" class="level3">
 <h3 class="anchored" data-anchor-id="b.-future-improvements">B. Future Improvements</h3>
 <p><strong>Refine feature engineering</strong>: Experiment with n-grams (bigrams, trigrams) for <em>item_description</em> to capture more nuanced product information.</p>
 <p><strong>Explore brand–category interactions</strong>: Analyze finer-grained brand–category combinations to uncover patterns affecting pricing.</p>
-<p><strong>Binning brands</strong>: Group brands into price tiers (e.g., high-end vs.&nbsp;budget) to better isolate pricing patterns.<br>
-<strong>Experiment with more complex models</strong>: Advanced approaches such as LightGBM, stacked ensembles, or deep learning could improve generalization, especially with more computational resources.</p>
+<p><strong>Binning brands</strong>: Group brands into price tiers (e.g., high-end vs.&nbsp;budget) to better isolate pricing patterns.</p>
+<p><strong>Experiment with more complex models</strong>: Advanced approaches such as LightGBM, stacked ensembles, or deep learning could improve generalization, especially with more computational resources.</p>
 <p><br></p>
 </section>
 </section>
