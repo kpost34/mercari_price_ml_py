@@ -87,7 +87,7 @@ make_barplot(df=df, var='has_cat_name', y='price_log', xlabs=labs_has, alpha=0.7
 make_barplot(df=df, var='has_brand', y='price_log', xlabs=labs_has, alpha=0.7, ax=axes[1])
 make_barplot(df=df, var='has_desc', y='price_log', xlabs=labs_has, alpha=0.7, ax=axes[2])
 
-fig.suptitle('Average prices by whether category name, brand, and description are present',
+fig.suptitle('Average log-transformed prices by whether category name, brand, and description are present',
              fontsize=11)
 fig.supylabel('Mean Log-Transformed Price ($) (± 1 SE)', fontsize=10)
 
@@ -161,7 +161,7 @@ plt.close()
 ## Additional features: Price per top 5 of each category
 for col in ['dpt_top5', 'cat_top5', 'class_top5', 'brand_top5', 'item_condition_id']:
   map_avg_price(df, col)
-#NOTE: will calculate these per fold during CV but will use to assess functional redundancy
+#NOTE: will calculate these per fold during CV 
 
 
 
@@ -223,14 +223,14 @@ plt.close()
 
 
 # Final Checks======================================================================================
-# 1. Missing values
+## 1. Missing values
 #do any features contain missing values? 
 df.isnull().sum() #all 0s
 #Conclusion: no missing values
 
 
-# 2. Feature redundancy
-## Literal redundancy (test with subset of data)
+## 2. Feature redundancy
+### Literal redundancy (test with subset of data)
 df_sub = df.sample(5000)
 duplicate_columns = df_sub.T.duplicated(keep=False)
 redundant_cols = duplicate_columns[duplicate_columns].index.tolist()
@@ -238,7 +238,7 @@ len(redundant_cols) #0
 #Conclusion: no redundant columns/features
 
 
-## Functional redundancy or strong collinearity
+### Functional redundancy or strong collinearity
 # data_path_out_archive = ROOT / "data" / "train_collinear_test.pkl"
 # pd.to_pickle(df, data_path_out_archive)
 # see archive for details on some pairwise correlational tests
@@ -247,7 +247,7 @@ len(redundant_cols) #0
   
 
 
-#4. Categorical variables
+## 3. Categorical variables
 #with few categories (after rare label encoding), use one-hot encoding for both types
 
 
