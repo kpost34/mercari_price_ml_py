@@ -243,12 +243,12 @@ Ridge Regression and XGBoost models were tuned to optimize performance on the tr
 
 XGBoost tuning involved a hyperparameter search space of 192 combinations, with 8 random selections yielding an RMSLE improvement of ~0.023 (final RMSLE = 0.5632).
 
-The Ridge Regression model with $\alpha = 0.5$ outperformed all other models on the Mercari training set with these features. 
+The Ridge Regression model with $\alpha = 5.0$ outperformed all other models on the Mercari training set with these features. 
 <br>
 
 ## IV. Results & Interpretation
 
-*Figure 3* shows that the model tends to over-predict log prices.
+*Figure 3* shows that the model tends to under-predict log prices.
 
 ```{python}
 
