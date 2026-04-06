@@ -302,12 +302,12 @@ window.Quarto = {
 <h3 class="anchored" data-anchor-id="d.-hyperparameter-tuning">D. Hyperparameter tuning</h3>
 <p>Ridge Regression and XGBoost models were tuned to optimize performance on the training set. For Ridge Regression, models were fit with <span class="math inline">\(\alpha\)</span> values of 0.5 (RMSLE = 0.4973) and 5.0 (RMSLE = 0.4956), both close to the best-performing model from the initial batch.</p>
 <p>XGBoost tuning involved a hyperparameter search space of 192 combinations, with 8 random selections yielding an RMSLE improvement of ~0.023 (final RMSLE = 0.5632).</p>
-<p>The Ridge Regression model with <span class="math inline">\(\alpha = 0.5\)</span> outperformed all other models on the Mercari training set with these features. <br></p>
+<p>The Ridge Regression model with <span class="math inline">\(\alpha = 5.0\)</span> outperformed all other models on the Mercari training set with these features. <br></p>
 </section>
 </section>
 <section id="iv.-results-interpretation" class="level2">
 <h2 class="anchored" data-anchor-id="iv.-results-interpretation">IV. Results &amp; Interpretation</h2>
-<p><em>Figure 3</em> shows that the model tends to over-predict log prices.</p>
+<p><em>Figure 3</em> shows that the model tends to under-predict log prices.</p>
 <div id="cell-fig_pred_obs_price" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div id="fig_pred_obs_price" class="quarto-figure quarto-figure-center anchored">
